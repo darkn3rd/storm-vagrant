@@ -1,0 +1,230 @@
+#!/bin/sh
+# NAME: provisionlib.src
+# AUTHOR: Joaquin Menchaca
+# CREATED: 2016-05-01
+#
+# PURPOSE: Generic provision shell script library for Apache Storm 0.10.0
+# DEPENDENCIES:
+#  * Ubuntu Trusty Tahr 14.04
+#  * Downloaded apache-storm-0.10.0.tar.gz
+
+#######
+# install_java8()
+#
+# description: installs Oracle JDk 1.8 using Oracle's PPA
+# notes: idempotent - will skip if repository already exist
+# usage: install_java8
+##########################################
+install_java8() {
+  [ -z $(which add-apt-repository) ] && \
+    { apt-get -y install python-software-properties ; }
+
+  if [ ! -f /etc/apt/sources.list.d/webupd8team-java-trusty.list ]; then
+    add-apt-repository -y ppa:webupd8team/java
+  fi
+
+  if ! dpkg -l "oracle-java8-installer" > /dev/null; then
+    apt-get update
+    echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true \
+      | /usr/bin/debconf-set-selections
+    apt-get -y install oracle-java8-installer
+    update-java-alternatives -s java-8-oracle
+
+    cat <<-'JAVA8_EOF' > /etc/profile.d/java.sh
+    export JAVA_HOME=/usr/lib/jvm/java-8-oracle
+    export PATH="${PATH}:${JAVA_HOME}/bin"
+JAVA8_EOF
+    . /etc/profile.d/java.sh
+  fi
+}
+#
+#######
+# create_user()
+#
+# description: creates a specificed user, defaults to "storm"
+# notes: idempotent - will skip if user already in passwd file
+# usage: create_user "storm"
+##########################################
+create_user() {
+  USERNAME=${1:-storm}
+
+  if ! getent passwd ${USERNAME} > /dev/null 2>&1; then
+    groupadd ${USERNAME}
+    useradd --gid ${USERNAME} --home-dir /home/${USERNAME} --create-home --shell /bin/bash ${USERNAME}
+    adduser ${USERNAME} sudo
+    echo "${USERNAME}:${USERNAME}123" | chpasswd
+    chage -I -1 -E -1 -m -1 -M -1 -W -1 -E -1 ${USERNAME}
+  fi
+}
+
+#######
+# create_local_dir()
+#
+# description: creates local director for storm environment
+# usage: STORM_LOCAL_DIR="/app/storm" create_local_dir
+##########################################
+create_local_dir() {
+  STORM_LOCAL_DIR=${STORM_LOCAL_DIR:-"/app/storm"}
+
+  # check if storm user exists
+  [ -d ${STORM_LOCAL_DIR} ] || mkdir -vp ${STORM_LOCAL_DIR}
+  sudo chown -R storm:storm ${STORM_LOCAL_DIR}
+  sudo chmod 750 ${STORM_LOCAL_DIR}
+}
+
+#######
+# configure_storm()
+#
+# description: configures storm.yaml for ui, supervisor, nimbus roles
+# notes: destructive, will replace existing storm.yaml
+# usage: ZOOKEEPER_SRVR="zookeeper" NIMBUS_SRVR="nimbus" \
+#          STORM_LOCAL_DIR="/app/storm" \
+#          configure_storm ${STORM_HOME}/conf
+##########################################
+configure_storm() {
+  STORM_CONFIG_PATH=${1:-"/etc/storm/"}
+  ZOOKEEPER_SRVR=${ZOOKEEPER_SRVR:-zookeeper}
+  NIMBUS_SRVR=${NIMBUS_SRVR:-nimbus}
+  STORM_LOCAL_DIR=${STORM_LOCAL_DIR:-"/app/storm"}
+
+  cat <<-STORM_EOF > ${STORM_CONFIG_PATH}/storm.yaml
+storm.zookeeper.servers:
+    - ${ZOOKEEPER_SRVR}
+
+nimbus.host: ${NIMBUS_SRVR}
+nimbus.childopts: "-Xmx1024m -Djava.net.preferIPv4Stack=true"
+
+ui.childopts: "-Xmx768m -Djava.net.preferIPv4Stack=true"
+
+supervisor.childopts: "-Djava.net.preferIPv4Stack=true"
+worker.childopts: "-Xmx768m -Djava.net.preferIPv4Stack=true"
+
+storm.local.dir: "${STORM_LOCAL_DIR}"
+
+supervisor.slots.ports:
+    - 6700
+    - 6701
+    - 6702
+    - 6703
+STORM_EOF
+
+  ln -sf ${STORM_HOME}/conf/storm.yaml /etc/storm/storm.yaml
+
+}
+
+#######
+# fetch_storm_package()
+#
+# description: downloads and installs storm
+# notes: idempotent - will skip if package already downloaded
+# usage: fetch_storm_package "0.10.0"
+##########################################
+fetch_storm_package() {
+  VERSION=${1:-"0.10.0"}
+  PACKAGE="apache-storm-${VERSION}.tar.gz"
+  PACKAGE_LOCATION=${PACKAGE_LOCATION:-"packages"}
+  PACKAGE_PATH="${PACKAGE_LOCATION}/${PACKAGE}"
+  DEFAULT_URL="http://apache.mesi.com.ar/storm/apache-storm-${VERSION}/${PACKAGE}"
+  PACKAGE_URL=${PACKAGE_URL:-"${DEFAULT_URL}"}
+
+  ##### TEST FOR CURL
+  [ -z $(which curl) ] && { apt-get update; apt-get -y install curl; }
+  [ -d "${PACKAGE_LOCATION}" ]  || \
+    { echo "ERROR: "${PACKAGE_LOCATION}" does not exist" 1>&2; return 1; }
+
+  ##### FETCH PACKAGE
+  [ -r "${PACKAGE_PATH}" ] || { curl --url "${PACKAGE_URL}" --output "${PACKAGE_PATH}" ; }
+
+}
+
+#######
+# install_storm()
+#
+# description: downloads and installs storm
+# notes: idempotent - will skip ${STORM_HOME} already exist
+# usage: ZOOKEEPER_SRVR="zookeeper" NIMBUS_SRVR="nimbus" \
+#          STORM_LOCAL_DIR="/app/storm" \
+#          configure_storm ${STORM_HOME}/conf
+##########################################
+install_storm() {
+  VERSION=${1:-"0.10.0"}
+  PACKAGE="apache-storm-${VERSION}.tar.gz"
+  PACKAGE_LOCATION=${PACKAGE_LOCATION:-"packages"}
+  PACKAGE_PATH="${PACKAGE_LOCATION}/${PACKAGE}"
+
+  ##### FETCH PACKAGE
+  [ -r ${PACKAGE_PATH} ] || { echo "Fetching package" ; }
+
+  ##### INSTALL PACKAGE
+  STORM_HOME=${STORM_HOME:-"/usr/lib/apache/storm/${VERSION}"}
+
+  if [ ! -d ${STORM_HOME} ]; then
+    [ -d /usr/lib/apache/storm ] || mkdir -vp /usr/lib/apache/storm
+
+    cp -v ${PACKAGE_PATH} /usr/lib/apache/storm/
+    tar -zxvf /usr/lib/apache/storm/${PACKAGE} -C /usr/lib/apache/storm
+    mv -v /usr/lib/apache/storm/apache-storm-${VERSION} ${STORM_HOME}
+
+    ##### Place Link in Executable Path
+    ln -s ${STORM_HOME}/bin/storm /usr/local/bin/storm
+    [ -d /etc/storm ] || mkdir -vp /etc/storm
+  fi
+}
+
+#######
+# install_zookeper()
+#
+# description: installs zookeeper from repository
+# usage: install_zookeeper
+##########################################
+install_zookeper() {
+  if ! dpkg -l "zookeeperd" > /dev/null; then
+    apt-get update && apt-get -y upgrade
+    apt-get -y install zookeeper zookeeperd
+  fi
+}
+
+
+#######
+# setup_supervisord()
+#
+# description: install and configure supervisord for storm
+# usage: setup_storm_supervisord $ROLES
+##########################################
+setup_storm_supervisord() {
+  ##### INSTALL SUPERVISOR
+  if ! dpkg -l "supervisor" > /dev/null; then
+    apt-get -y install supervisor
+    #update-rc.d supervisor defaults
+    #service supervisor start
+  fi
+
+  ##### CREATE STORM LOG AREAS
+  [ -d /var/log/storm ] || mkdir -vp /var/log/storm
+  chown -R storm:storm /var/log/storm
+
+  ##### CONFIGURE STORM CONFIGURATION
+  for ROLE in $@; do
+    if [ ! -r /etc/supervisor/conf.d/${ROLE}.conf ] ; then
+      cat <<-SUPERVISE_EOF > /etc/supervisor/conf.d/${ROLE}.conf
+[program:storm-${ROLE}]
+command=/usr/local/bin/storm ${ROLE}
+user=storm
+autostart=true
+autorestart=true
+startsecs=10
+startretries=999
+log_stdout=true
+log_stderr=true
+stdout_logfile=/var/log/storm/${ROLE}.out.log
+stdout_logfile=20MB
+stdout_logfile=10
+stderr_logfile=/var/log/storm/${ROLE}.err.log
+stderr_logfile=20MB
+stderr_logfile=10
+SUPERVISE_EOF
+    fi
+   done
+   supervisorctl reread
+   supervisorctl update
+}

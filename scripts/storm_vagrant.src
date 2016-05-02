@@ -1,0 +1,53 @@
+#!/bin/sh
+# NAME: storm_vagrant.src
+# AUTHOR: Joaquin Menchaca
+# CREATED: 2016-05-01
+#
+# PURPOSE: install Apache Storm 0.10.0 on Vagrant
+# DEPENDENCIES:
+#  * provisionlib.src
+#  * Vagrant environment
+
+#######
+# install_storm()
+#
+# notes: hostname should have nimbus or supervisor in the name
+# description: installs storm on vagrant environment
+##########################################
+install_storm() {
+  SCRIPT_PATH="/vagrant/scripts/"
+  . ${SCRIPT_PATH}/provisionlib.src
+
+
+  # System Hostnames
+  ZOOKEEPER_SRVR="zookeeper"
+  NIMBUS_SRVR="nimbus"
+
+  # Fetch, Install, Configure
+  PACKAGE_LOCATION="/vagrant/scripts/packages"
+  STORM_VERSION="0.10.0"
+  STORM_HOME="/usr/lib/apache/storm/${STORM_VERSION}"
+  STORM_LOCAL_DIR="/app/storm"
+
+  # Prerequisites
+  [ -d ${PACKAGE_LOCATION} ] || mkdir -vp ${PACKAGE_LOCATION}
+  fetch_storm_package "${STORM_VERSION}"
+  install_java8
+
+  # Storm Installation
+  create_user "storm"
+  create_local_dir
+  install_storm "${STORM_VERSION}"
+  configure_storm "${STORM_HOME}/conf"
+
+  # Install Supervisor & Craft Configuration Based on Script name
+  case $(/bin/hostname) in
+    *nimbus*)
+      setup_storm_supervisord "nimbus ui"
+      ;;
+    *supervisor*)
+      setup_storm_supervisord "supervisor"
+      ;;
+  esac
+
+}
