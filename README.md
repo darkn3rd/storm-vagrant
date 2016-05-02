@@ -52,6 +52,27 @@ choco install chocolately.config
 
 This also installs a bash shell and ssh client using [MSYS2](https://msys2.github.io/).
 
+## **Research**
+
+This is material I came across while researching Apache Storm Cluster (version 0.10.0):
+
+* Official Documentation
+  * [Setting up a Storm Cluster (Version 0.10.0)](http://storm.apache.org/releases/0.10.0/Setting-up-a-Storm-cluster.html)
+  * [Storm downloads](http://storm.apache.org/downloads.html)
+  * [Storm 0.10.0 Release Notes](https://github.com/apache/storm/blob/v0.10.0/CHANGELOG.md)
+* Overview:
+  * [Understanding the Parallelism of a Storm Topology](http://www.michael-noll.com/blog/2012/10/16/understanding-the-parallelism-of-a-storm-topology/)
+* Starter Topologies
+  * [Example Storm Topologies](https://github.com/apache/storm/tree/v0.10.0/examples/storm-starter)
+* How-Tos:
+  * [Running a Multi-Node Storm Cluster](http://www.michael-noll.com/tutorials/running-multi-node-storm-cluster/) - JDK 1.6, ZooKeeper 3.4.5, ZreoMQ 2.1.7, JZMQ 2.1, and Apache Storm 0.8.2, using supervisord to manage services.
+  * [How to Install a Distributed Apache Storm Cluster](http://knowm.org/how-to-install-a-distributed-apache-storm-cluster/) - documents JDK 1.8, and Apache Storm 0.9.5, using upstart to manage services.
+  * [Creating a Production Storm Cluster](http://tutorials.github.io/pages/creating-a-production-storm-cluster.html?ts=1340499018#.VyeUqz87Snc) - documents JDK 1.7, Zookeeper 3.4.3, ZeroMQ 2.1.7, JZMQ, and Apache Storm 0.7.0 and manually running services with `nohup`.
+  * [Apache Storm - Installation (Tutorials Point)](http://www.tutorialspoint.com/apache_storm/apache_storm_installation.htm) - documents single  system with JDK 1.8, Zookeeper 3.4.6, Apache Storm 0.9.5
+* Automation (Vagrant, Pallet)
+  * [Storm-Deploy (uses Pallet)](https://github.com/nathanmarz/storm-deploy) - designated as *ancient* on user mailing list, targets Apache Storm 0.9.0 on AWS.
+  * [PT Goetz's Vagrant](https://github.com/ptgoetz/storm-vagrant) - documents Storm 0.9.0.1
+
 ## **License**
 
 The content of this project itself is licensed under the [Creative Commons Attribution 3.0 license](http://creativecommons.org/licenses/by/3.0/us/deed.en_US), and the underlying source code is licensed under the [MIT license](http://opensource.org/licenses/mit-license.php).
