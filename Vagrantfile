@@ -6,7 +6,7 @@ time = Time.now.strftime("%Y%m%d%H%M%S")
 ############### CONSTANTS
 CONFIGFILE_HOSTS="./config/global.hosts"
 
-############### BUILD RUBY DATA STRUCTURE (HoHoLoH)
+############### BUILD RUBY DATA STRUCTURE (Hash)
 hosts = {}  # empty data-structure
 File.readlines(CONFIGFILE_HOSTS).map(&:chomp).each do |line|
   ipaddr, hostname = line.split(/\s+/)
