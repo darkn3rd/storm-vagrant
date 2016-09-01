@@ -15,7 +15,8 @@
 #  * This script will be run on the guest operating system
 
 ##### Constants
-CONFIGFILE="/vagrant/config/global.hosts"
+ENVIRONMENT=${VAGRANT_ENV:-'default'}
+CONFIGFILE="/vagrant/config/${ENVIRONMENT}.hosts"
 SSH_CONFIG="/etc/ssh/ssh_config"
 HOSTS_FILE="/etc/hosts"
 

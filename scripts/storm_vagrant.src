@@ -9,6 +9,26 @@
 #  * Vagrant environment
 
 #######
+# install_maven()
+#
+# notes: hostname should have nimbus or supervisor in the name
+# description: installs storm on vagrant environment
+##########################################
+install_maven() {
+  SCRIPT_PATH="/vagrant/scripts/"
+  . ${SCRIPT_PATH}/provisionlib.src
+
+  # Fetch, Install, Configure
+  PACKAGE_LOCATION="/vagrant/scripts/packages"
+  MAVEN_VERSION="3.3.9"
+
+  fetch_maven_package "${MAVEN_VERSION}"
+  install_java8
+  install_maven "${MAVEN_VERSION}"
+
+}
+
+#######
 # install_storm()
 #
 # notes: hostname should have nimbus or supervisor in the name
@@ -17,7 +37,6 @@
 install_storm() {
   SCRIPT_PATH="/vagrant/scripts/"
   . ${SCRIPT_PATH}/provisionlib.src
-
 
   # System Hostnames
   ZOOKEEPER_SRVR="zookeeper"

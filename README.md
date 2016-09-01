@@ -36,6 +36,28 @@ vagrant@nimbus:~$ storm jar \
   my_topology_name remote
 ```
 
+### **Building Topologies**
+
+You need to bring up a build environment.  There are two supported:
+  *  `dev_local` for a single-node build environment, and
+  * `dev_remote` for build environment with a full cluster.
+
+First bring up the environment(s):
+
+```ShellSession
+$ export VAGRANT_ENV=dev_remote
+$ vagrant up
+$ vagrant ssh
+```
+
+This brings up the maven build system, then you can compile topologies, such as the storm starter.
+
+```ShellSession
+$ cd /usr/lib/apache/storm/0.10.0/examples/storm-starter
+$ sudo mvn clean install -DskipTests=true
+$ cp target/storm-starter-0.10.0.jar /vagrant/topologies/
+```
+
 ### **Prerequisites**
 
 Both [Vagrant](https://www.vagrantup.com/) and [Virtualbox](https://www.virtualbox.org/wiki/Downloads) must be installed.  You can download them manually, or use the tools listed below for Mac OS X or Windows.
