@@ -1,6 +1,7 @@
 # **Vagrant-Shell Storm Cluster**
 
 by Joaquin Menchaca on May 2nd, 2016
+Updated September 1st, 2016
 
 This creates a Apache Storm Cluster using Vagrant with shell provisioning.
 
