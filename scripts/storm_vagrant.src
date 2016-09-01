@@ -46,7 +46,7 @@ install_storm() {
       setup_storm_supervisord "nimbus ui"
       ;;
     *supervisor*)
-      setup_storm_supervisord "supervisor"
+      setup_storm_supervisord "supervisor logviewer"
       ;;
   esac
 
