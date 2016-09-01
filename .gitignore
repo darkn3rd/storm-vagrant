@@ -1,5 +1,6 @@
 packages
-topologies
+!packages/README.md
+topologies/*
+!topologies/README.md
 .vagrant
 .DS_Store
-

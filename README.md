@@ -18,11 +18,23 @@ The following packages are installed:
 
 With [Vagrant](https://www.vagrantup.com/) and [Virtualbox](https://www.virtualbox.org/wiki/Downloads) installed, just run:
 
-```bash
-vagrant up
+```ShellSession
+$ vagrant up
 ```
 
 This brings up four systems on `192.168.54.0/24` (see `config/global.hosts`). You then can point a web browser to http://192.168.54.4:8080 to view the GUI.
+
+### **Running a Topology**
+
+To run a topology, log into nimbus system (default) and submit a topology to the cluster from the topologies directory:
+
+```ShellSession
+$ vagrant ssh
+vagrant@nimbus:~$ storm jar \
+  /vagrant/topologies/storm-starter-0.10.0.jar \
+  storm.starter.RollingTopWords \
+  my_topology_name remote
+```
 
 ### **Prerequisites**
 
