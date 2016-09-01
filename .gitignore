@@ -1,5 +1,5 @@
-packages
-!packages/README.md
+scripts/packages/*
+!scripts/packages/README.md
 topologies/*
 !topologies/README.md
 .vagrant
