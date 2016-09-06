@@ -25,7 +25,7 @@ Vagrant.configure("2") do |config|
 
       # Provision
       node.vm.provision "shell", path: "scripts/setup-all.sh"
-      node.vm.provision "shell", path: "scripts/#{hostname}.sh"
+      node.vm.provision "shell", path: "scripts/#{hostname.split(/\./)[0]}.sh"
     end
   end
 end
