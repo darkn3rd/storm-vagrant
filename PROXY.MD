@@ -29,6 +29,22 @@ address=/zookeeper.dev/192.168.54.21
 address=/storm.dev/192.168.54.21
 ```
 
+## **Using Proxy Server**
+
+With above pre-requisites met, i.e. hosts or dns cache configuration, and a previously compiled topology in the `topologies/` directory, run a topology (below), and then point the web browser to http://storm.dev.
+
+```bash
+$ # bring up environment with proxy server addition
+$ export VAGRANT_ENV=proxy
+$ vagrant up
+$ # run topology
+$ vagrant ssh
+vagrant@nimbus:~$ storm jar \
+  /vagrant/topologies/storm-starter-0.10.0.jar \
+  storm.starter.RollingTopWords \
+  my_topology_name remote
+```
+
 ## **DNSMasq on Mac OS X**
 
 ### **Install**

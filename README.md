@@ -59,6 +59,12 @@ $ sudo mvn clean install -DskipTests=true
 $ cp target/storm-starter-0.10.0.jar /vagrant/topologies/
 ```
 
+### **Using A Proxy Server**
+
+You can view the cluster from your host using the web interface, `storm ui` and `storm logviewer`.  Optional you can use a proxy server to route to appropriate backend servers:
+
+* [Proxy Instructions](PROXY.MD)
+
 ### **Prerequisites**
 
 Both [Vagrant](https://www.vagrantup.com/) and [Virtualbox](https://www.virtualbox.org/wiki/Downloads) must be installed.  You can download them manually, or use the tools listed below for Mac OS X or Windows.
