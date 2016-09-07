@@ -1,5 +1,12 @@
 #!/usr/bin/env bash
 
+#######
+# install_nginx()
+#
+# description: installs gninx
+# notes: idempotent - will skip if package already downloaded
+# usage: install_nginx
+##########################################
 install_nginx() {
   [ -z $(which add-apt-repository) ] && \
     { apt-get -y install python-software-properties ; }
@@ -14,12 +21,39 @@ install_nginx() {
   fi
 }
 
+#######
+# remove_site()
+#
+# description: removes site from nginx configuration
+# usage: remove_site site
+##########################################
 remove_site() {
   SITE_NAME=$1
   rm /etc/nginx/sites-enabled/${SITE_NAME}
+  service nginx configtest || service nginx reload
 }
 
+#######
+# enable_site()
+#
+# description: enables site for nginx configuration
+# usage: enable_site site
+##########################################
 enable_site() {
+  SITE_NAME=$1
+
+  cd /etc/nginx/sites-enabled/
+  ln -s /etc/nginx/sites-available/${SITE_NAME} ${SITE_NAME}
+  service nginx configtest || service nginx reload
+}
+
+#######
+# create_site()
+#
+# description: creates and enables site for nginx configuration
+# usage: create_site listen_port location_proxy_pass sites
+##########################################
+create_site() {
   LISTEN=$1; shift
   LOCATION=$1; shift
   SITE_NAME=$1
@@ -34,6 +68,18 @@ server {
   }
 }
 SITE_EOF
+
+}
+
+#######
+# enable_site()
+#
+# description: enables site for nginx configuration
+# usage: enable_site site
+##########################################
+enable_site() {
+  SITE_NAME=$1
+
   cd /etc/nginx/sites-enabled/
   ln -s /etc/nginx/sites-available/${SITE_NAME} ${SITE_NAME}
   service nginx configtest || service nginx reload
