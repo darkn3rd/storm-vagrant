@@ -4,3 +4,4 @@ topologies/*
 !topologies/README.md
 .vagrant
 .DS_Store
+.idea
