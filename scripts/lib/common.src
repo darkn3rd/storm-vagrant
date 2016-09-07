@@ -1,0 +1,55 @@
+#!/bin/sh
+# NAME: common.src
+# AUTHOR: Joaquin Menchaca
+# CREATED: 2016-08-06
+# PURPOSE: General library of generic functions
+#
+# NOTES:
+#   * These functions need to run on the virtual guest system
+#
+# FUNCTIONS LIST:
+#  General Purpose:
+#   * error()
+#   * warn()
+#   * create_user()
+
+#######
+# error()
+#
+# description: exit program with error message to stderr
+# usage: error "message" error_code
+##########################################
+error() {
+  echo "${1}" 1>&2  # stderr message
+  exit ${2:-"1"}
+}
+
+#######
+# warn()
+#
+# description: print warrning message to stderr and return error code
+# usage: warn "message" warn_code
+##########################################
+warn() {
+  echo "${1}" 1>&2  # stderr message
+  return ${2:-"1"}
+}
+
+#######
+# create_user()
+#
+# description: creates a specificed user, defaults to "storm"
+# notes: idempotent - will skip if user already in passwd file
+# usage: create_user "storm"
+##########################################
+create_user() {
+  USERNAME=${1:-storm}
+
+  if ! getent passwd ${USERNAME} > /dev/null 2>&1; then
+    groupadd ${USERNAME}
+    useradd --gid ${USERNAME} --home-dir /home/${USERNAME} --create-home --shell /bin/bash ${USERNAME}
+    adduser ${USERNAME} sudo
+    echo "${USERNAME}:${USERNAME}123" | chpasswd
+    chage -I -1 -E -1 -m -1 -M -1 -W -1 -E -1 ${USERNAME}
+  fi
+}

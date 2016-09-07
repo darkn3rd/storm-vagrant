@@ -15,8 +15,9 @@
 # description: installs storm on vagrant environment
 ##########################################
 install_maven() {
-  SCRIPT_PATH="/vagrant/scripts/"
-  . ${SCRIPT_PATH}/provisionlib.src
+  . ${SCRIPTLIB}/maven.src
+  . ${SCRIPTLIB}/java.src
+  . ${SCRIPTLIB}/storm.src
 
   # Fetch, Install, Configure
   PACKAGE_LOCATION="/vagrant/scripts/packages"
@@ -35,12 +36,15 @@ install_maven() {
 # description: installs storm on vagrant environment
 ##########################################
 install_storm() {
-  SCRIPT_PATH="/vagrant/scripts/"
-  . ${SCRIPT_PATH}/provisionlib.src
+  . ${SCRIPTLIB}/storm.src
+  . ${SCRIPTLIB}/java.src
+  . ${SCRIPTLIB}/base.src
+
+  CONFIGFILE=${VAGRANT_CONFIG:-"/vagrant/config/default.hosts"}
 
   # System Hostnames
-  ZOOKEEPER_SRVR="zookeeper"
-  NIMBUS_SRVR="nimbus"
+  ZOOKEEPER_SRVR=$(get_hostname ${CONFIGFILE} zookeeper)
+  NIMBUS_SRVR=$(get_hostname ${CONFIGFILE} nimbus)
 
   # Fetch, Install, Configure
   PACKAGE_LOCATION="/vagrant/scripts/packages"
