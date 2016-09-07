@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+# NAME: storm.src
+# AUTHOR: Joaquin Menchaca
+# CREATED: 2016-05-01
+#
+# PURPOSE: Generic provision shell script library for Apache Maven
+# DEPENDENCIES:
+#  * Ubuntu Trusty Tahr 14.04
+#
+# FUNCTIONS LIST:
+#   * fetch_maven_package()
+#   * install_maven()
+
+
+. ${SCRIPTLIB}/common.src
+
+
+#######
+# fetch_maven_package()
+#
+# description: downloads and installs storm
+# notes: idempotent - will skip if package already downloaded
+# usage: fetch_maven_package "3.3.9"
+##########################################
+fetch_maven_package() {
+  VERSION=${1:-"3.3.9"}
+  PACKAGE="apache-maven-${VERSION}-bin.tar.gz"
+  PACKAGE_LOCATION=${PACKAGE_LOCATION:-"packages"}
+  PACKAGE_PATH="${PACKAGE_LOCATION}/${PACKAGE}"
+  PACKAGE_URL="http://apache.mesi.com.ar/maven/maven-3/${VERSION}/binaries/${PACKAGE}"
+
+  ##### TEST FOR CURL
+  [ -z $(which curl) ] && { apt-get update; apt-get -y install curl; }
+  [ -d "${PACKAGE_LOCATION}" ]  || \
+    { echo "ERROR: "${PACKAGE_LOCATION}" does not exist" 1>&2; return 1; }
+
+  ##### FETCH PACKAGE
+  [ -r "${PACKAGE_PATH}" ] || { curl --url "${PACKAGE_URL}" --output "${PACKAGE_PATH}" ; }
+
+}
+
+#######
+# install_maven()
+#
+# description: downloads and installs maven
+# notes: idempotent - will skip ${MAVEN_HOME} already exist
+##########################################
+install_maven() {
+  VERSION=${1:-"3.3.9"}
+  PACKAGE="apache-maven-${VERSION}-bin.tar.gz"
+  PACKAGE_LOCATION=${PACKAGE_LOCATION:-"packages"}
+  PACKAGE_PATH="${PACKAGE_LOCATION}/${PACKAGE}"
+
+  [ -r ${PACKAGE_PATH} ] || \
+    { echo "Fetching ${PACKAGE}" ; fetch_maven_package ${VERSION}; }
+
+  MAVEN_HOME=/usr/lib/apache/maven/${VERSION}
+
+  if [ ! -d ${MAVEN_HOME} ]; then
+    # INSTALL PACKAGE
+    mkdir -vp /usr/lib/apache/maven
+    cp -v ${PACKAGE_PATH} /usr/lib/apache/maven/
+    tar -zxvf /usr/lib/apache/maven/${PACKAGE} -C /usr/lib/apache/maven
+    mv -v /usr/lib/apache/maven/apache-maven-${VERSION} /usr/lib/apache/maven/${VERSION}
+
+    cat <<-MAVEN_EOF > /etc/profile.d/maven.sh
+    export MAVEN_HOME=/usr/lib/apache/maven/${VERSION}
+    PATH=\${PATH}:\${MAVEN_HOME}/bin
+    export PATH
+MAVEN_EOF
+    . /etc/profile.d/maven.sh
+  fi
+
+    ln -s ${MAVEN_HOME}/bin/mvn /usr/local/bin/mvn
+}

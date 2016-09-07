@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+# NAME: java.src
+# AUTHOR: Joaquin Menchaca
+# CREATED: 2016-05-01
+#
+# PURPOSE: Generic provision shell script library for Oracle Java 8
+# DEPENDENCIES:
+#  * Ubuntu Trusty Tahr 14.04
+#
+# FUNCTIONS LIST:
+#   * install_java8()
+
+#######
+# install_java8()
+#
+# description: installs Oracle JDk 1.8 using Oracle's PPA
+# notes: idempotent - will skip if repository already exist
+# usage: install_java8
+##########################################
+install_java8() {
+  [ -z $(which add-apt-repository) ] && \
+    { apt-get -y install python-software-properties ; }
+
+  if [ ! -f /etc/apt/sources.list.d/webupd8team-java-trusty.list ]; then
+    add-apt-repository -y ppa:webupd8team/java
+  fi
+
+  if ! dpkg -l "oracle-java8-installer" &> /dev/null; then
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get -qq update
+    echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true \
+      | /usr/bin/debconf-set-selections
+    apt-get -y install oracle-java8-installer > /dev/null 2>&1
+    update-java-alternatives -s java-8-oracle
+
+    cat <<-'JAVA8_EOF' > /etc/profile.d/java.sh
+    export JAVA_HOME=/usr/lib/jvm/java-8-oracle
+    export PATH="${PATH}:${JAVA_HOME}/bin"
+JAVA8_EOF
+    . /etc/profile.d/java.sh
+  fi
+}

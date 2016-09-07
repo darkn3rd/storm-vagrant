@@ -3,7 +3,7 @@
 # Configure Local Vagrant Paths
 CONFIGFILE=${VAGRANT_CONFIG:-"/vagrant/config/default.hosts"}
 SCRIPT_PATH="/vagrant/scripts"
-SCRIPTLIB="${SCRIPT_PATH}/libs"
+SCRIPTLIB="${SCRIPT_PATH}/lib"
 
 # Import Libraries
 . ${SCRIPTLIB}/nginx.src  # install_nginx(), remote_site(), enable_site()

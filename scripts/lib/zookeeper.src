@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# NAME: storm.src
+# AUTHOR: Joaquin Menchaca
+# CREATED: 2016-05-01
+#
+# PURPOSE: Generic provision shell script library for Apache Zookeeper
+# DEPENDENCIES:
+#  * Ubuntu Trusty Tahr 14.04
+#
+# FUNCTIONS LIST:
+#   * install_zookeper()
+
+. ${SCRIPTLIB}/common.src
+
+#######
+# install_zookeper()
+#
+# description: installs zookeeper from repository
+# usage: install_zookeeper
+##########################################
+install_zookeper() {
+  if ! dpkg -l "zookeeperd" &> /dev/null; then
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get update && apt-get -y upgrade
+    apt-get -y install zookeeper zookeeperd
+  fi
+}

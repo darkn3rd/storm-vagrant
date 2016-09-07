@@ -12,6 +12,7 @@
 # FUNCTIONS LIST:
 #  SSH & Hosts Configuration:
 #   * get_hostnames()
+#   * get_hostname()
 #   * get_ipaddress()
 #   * config_ssh()
 #   * config_hosts()
@@ -35,9 +36,30 @@ get_hostnames () {
    [ -e ${CONFIGFILE} ] || \
      { echo "ERROR: ${CONFIGFILE} doesn't exist."; return 2; }
 
-  echo $(tr -s ' ' < "${1}" | cut -d ' ' -f2) # return second column
+  echo $(tr -s ' ' < "${CONFIGFILE}" | cut -d ' ' -f2) # return second column
 
 }
+
+#######
+# get_hostname()
+#
+# description: fetches exact host name from search pattern
+# usage: get_hostname $CONFIGFILE $SEARCH_PATTERN
+##########################################
+get_hostname () {
+  [ $# -ne 2 ] && \
+    { echo "USAGE: get_hostnames [config_file] [search_pattern]"; return 1; }
+
+  CONFIGFILE=$1
+  SEARCH=$2
+
+  [ -e ${CONFIGFILE} ] || \
+     { echo "ERROR: ${CONFIGFILE} doesn't exist."; return 2; }
+
+  echo $(tr -s ' ' < "${CONFIGFILE}" | cut -d ' ' -f2 | grep "${SEARCH}")
+
+}
+
 
 #######
 # get_ipaddress()
