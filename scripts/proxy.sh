@@ -20,6 +20,7 @@ server{
 }
 
 server{
+  listen 8000;
   server_name supervisor1.dev;
   location / {
     proxy_pass http://192.168.54.5;
@@ -27,6 +28,7 @@ server{
 }
 
 server{
+  listen 8000;
   server_name supervisor2.dev;
   location / {
     proxy_pass http://192.168.54.6;
