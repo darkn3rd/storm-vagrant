@@ -61,7 +61,7 @@ create_site() {
 
   cat <<-SITE_EOF > /etc/nginx/sites-available/${SITE_NAME}
 server {
-  listen ${LISTEN}
+  listen ${LISTEN};
   server_name ${SERVER_NAME};
   location / {
     proxy_pass ${LOCATION};

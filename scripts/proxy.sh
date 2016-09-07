@@ -21,6 +21,6 @@ create_site 8000 "http://$(get_ipaddress ${CONFIGFILE} supervisor1.dev):8000" 's
 create_site 8000 "http://$(get_ipaddress ${CONFIGFILE} supervisor2.dev):8000" 'supervisor2.dev'
 
 # Enable newly created sites
-enable_site nimbus.dev
+enable_site storm.dev
 enable_site supervisor1.dev
 enable_site supervisor2.dev
