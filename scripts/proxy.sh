@@ -12,26 +12,26 @@ apt-get -qq update && apt-get -y install nginx
 # get_ipaddress $1
 
 cat <<-'STORMUI_CONF' > /etc/nginx/sites-available/storm
-server{
+server {
   server_name storm.dev nimbus.dev;
   location / {
     proxy_pass http://192.168.54.4:8080;
   }
 }
 
-server{
+server {
   listen 8000;
   server_name supervisor1.dev;
   location / {
-    proxy_pass http://192.168.54.5;
+    proxy_pass http://192.168.54.5:8000;
   }
 }
 
-server{
+server {
   listen 8000;
   server_name supervisor2.dev;
   location / {
-    proxy_pass http://192.168.54.6;
+    proxy_pass http://192.168.54.6:8000;
   }
 }
 
