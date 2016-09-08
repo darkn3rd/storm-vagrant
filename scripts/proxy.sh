@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 # Configure Local Vagrant Paths
 CONFIGFILE=${VAGRANT_CONFIG:-"/vagrant/config/default.hosts"}

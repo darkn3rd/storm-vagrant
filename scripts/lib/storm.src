@@ -45,11 +45,17 @@ configure_storm() {
   NIMBUS_SRVR=${NIMBUS_SRVR:-nimbus.dev}
   STORM_LOCAL_DIR=${STORM_LOCAL_DIR:-"/app/storm"}
 
+  if [ ${STORM_MAJOR_VERSION} -lt 1 ]; then
+    NIMBUS_HOST_CONFIG="nimbus.host: ${NIMBUS_SRVR}"
+  elif [ ${STORM_MAJOR_VERSION} -eq 1 ]; then
+    NIMBUS_HOST_CONFIG="nimbus.seeds: [${NIMBUS_SRVR}]"
+  fi
+
   cat <<-STORM_EOF > ${STORM_CONFIG_PATH}/storm.yaml
 storm.zookeeper.servers:
     - ${ZOOKEEPER_SRVR}
 
-nimbus.host: ${NIMBUS_SRVR}
+${NIMBUS_HOST_CONFIG}
 nimbus.childopts: "-Xmx1024m -Djava.net.preferIPv4Stack=true"
 
 ui.childopts: "-Xmx768m -Djava.net.preferIPv4Stack=true"
@@ -124,7 +130,7 @@ install_storm() {
     mv -v /usr/lib/apache/storm/apache-storm-${VERSION} ${STORM_HOME}
 
     ##### Place Link in Executable Path
-    ln -s ${STORM_HOME}/bin/storm /usr/local/bin/storm
+    ln -sf ${STORM_HOME}/bin/storm /usr/local/bin/storm
     [ -d /etc/storm ] || mkdir -vp /etc/storm
   fi
 }

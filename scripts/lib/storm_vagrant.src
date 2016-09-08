@@ -41,17 +41,24 @@ install_storm() {
   . ${SCRIPTLIB}/base.src
 
   CONFIGFILE=${VAGRANT_CONFIG:-"/vagrant/config/default.hosts"}
+  PACKAGE_LOCATION="/vagrant/scripts/packages"
+  STORM_VERSION="1.0.2"
+  STORM_HOME="/usr/lib/apache/storm/${STORM_VERSION}"
+  STORM_LOCAL_DIR="/app/storm"
 
   # System Hostnames
   ZOOKEEPER_SRVR=$(get_hostname ${CONFIGFILE} zookeeper)
   NIMBUS_SRVR=$(get_hostname ${CONFIGFILE} nimbus)
 
-  # Fetch, Install, Configure
-  PACKAGE_LOCATION="/vagrant/scripts/packages"
-  STORM_VERSION="0.10.0"
-  STORM_HOME="/usr/lib/apache/storm/${STORM_VERSION}"
-  STORM_LOCAL_DIR="/app/storm"
+  STORM_MAJOR_VERSION=$(echo ${STORM_VERSION} | grep -o '^[0-9]*')
 
+  if [ ${STORM_MAJOR_VERSION} -lt 1 ]; then
+    NIMBUS_SRVR=$(echo $NIMBUS_SRVR | grep -o '^[a-z.]*')
+  elif [ ${STORM_MAJOR_VERSION} -eq 1 ]; then
+    NIMBUS_SRVR=$(echo $NIMBUS_SRVR | sed -Ee 's/([[:alnum:].]*)/"\1"/g' -e 's/\s/, /')
+  fi
+
+  # Fetch, Install, Configure
   # Prerequisites
   [ -d ${PACKAGE_LOCATION} ] || mkdir -vp ${PACKAGE_LOCATION}
   fetch_storm_package "${STORM_VERSION}"
@@ -60,6 +67,7 @@ install_storm() {
   # Storm Installation
   create_user "storm"
   create_local_dir
+  echo DEBUG=${STORM_VERSION}
   install_storm "${STORM_VERSION}"
   configure_storm "${STORM_HOME}/conf"
 

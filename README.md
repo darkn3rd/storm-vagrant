@@ -37,10 +37,12 @@ vagrant@nimbus:~$ storm jar \
   my_topology_name remote
 ```
 
+vagrant@nimbus:~$ storm jar /vagrant/topologies/storm-starter-1.0.2.jar storm.starter.RollingTopWords qingbo_demo remote
+
 ### **Building Topologies**
 
 You need to bring up a build environment.  There are two supported:
-  *  `dev_local` for a single-node build environment, and
+  * `dev_local` for a single-node build environment, and
   * `dev_remote` for build environment with a full cluster.
 
 First bring up the environment(s):
@@ -54,9 +56,9 @@ $ vagrant ssh
 This brings up the maven build system, then you can compile topologies, such as the storm starter.
 
 ```ShellSession
-$ cd /usr/lib/apache/storm/0.10.0/examples/storm-starter
+$ cd /usr/lib/apache/storm/1.0.2/examples/storm-starter
 $ sudo mvn clean install -DskipTests=true
-$ cp target/storm-starter-0.10.0.jar /vagrant/topologies/
+$ cp target/storm-starter-*.jar /vagrant/topologies/
 ```
 
 ### **Using A Proxy Server**

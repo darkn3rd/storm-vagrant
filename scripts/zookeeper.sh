@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 SCRIPT_PATH="/vagrant/scripts"
 SCRIPTLIB="${SCRIPT_PATH}/lib"
 . ${SCRIPTLIB}/zookeeper.src
