@@ -55,7 +55,7 @@ configure_storm() {
     NIMBUS_HOST_CONFIG="nimbus.seeds: [${NIMBUS_SRVR}]"
   fi
 
-  cat <<-STORM_EOF > storm.yaml
+  cat <<-STORM_EOF > ${STORM_HOME}/conf/storm.yaml
 storm.zookeeper.servers:
 $(for SRVR in ${ZOOKEEPER_SRVR}; do echo "  - ${SRVR}"; done)
 

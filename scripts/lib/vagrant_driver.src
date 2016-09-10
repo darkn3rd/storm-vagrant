@@ -86,6 +86,7 @@ setup_storm() {
   HOSTNAME=$(/bin/hostname)
   if [ ${HOSTNAME} = ${PRIMARY_SRVR} ]; then
     NIMBUS_SERVICES="${NIMBUS_SERVICES} ui"
+  fi
 
   # designate 'storm logviewer' server if Storm 1.x
   if [ ${STORM_MAJOR_VERSION} -ge 1 ]; then
@@ -114,7 +115,8 @@ setup_proxy() {
   grep "${HOSTNAME}" ${CONFIGFILE} | grep -q "proxy" || return 0
 
   ##################### VARIABLES #####################
-  CONFIGFILE=${VAGRANT_CONFIG:-"/vagrant/config/default.hosts"}
+  STORM_ENV=${STORM_ENV:-"default"}
+  CONFIGFILE="/vagrant/config/${STORM_ENV}.hosts"
   SCRIPT_PATH="/vagrant/scripts"
   SCRIPTLIB="${SCRIPT_PATH}/lib"
   # check ${STORM_VERSION}

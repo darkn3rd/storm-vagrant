@@ -13,7 +13,8 @@
 #  * This script will be run on the guest operating system
 
 ##### Variables
-CONFIGFILE=${VAGRANT_CONFIG:-"/vagrant/config/default.hosts"}
+STORM_ENV=${STORM_ENV:-"default"}
+CONFIGFILE="/vagrant/config/${STORM_ENV}.hosts"
 SCRIPT_PATH="/vagrant/scripts"
 SCRIPTLIB="${SCRIPT_PATH}/lib"
 
