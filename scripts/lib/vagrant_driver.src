@@ -9,19 +9,19 @@
 #  * Vagrant environment
 
 #######
-# install_maven()
+# setup_maven()
 #
 # notes: hostname should have nimbus or supervisor in the name
 # description: installs storm on vagrant environment
 ##########################################
-install_maven() {
+setup_maven() {
   . ${SCRIPTLIB}/maven.src
   . ${SCRIPTLIB}/java.src
   . ${SCRIPTLIB}/storm.src
 
   # Fetch, Install, Configure
   PACKAGE_LOCATION="/vagrant/scripts/packages"
-  MAVEN_VERSION="3.3.9"
+  MAVEN_VERSION=${1-"3.3.9"}
 
   fetch_maven_package "${MAVEN_VERSION}"
   install_java8
@@ -30,33 +30,25 @@ install_maven() {
 }
 
 #######
-# install_storm()
+# setup_storm()
 #
 # notes: hostname should have nimbus or supervisor in the name
 # description: installs storm on vagrant environment
 ##########################################
-install_storm() {
+setup_storm() {
   . ${SCRIPTLIB}/storm.src
   . ${SCRIPTLIB}/java.src
   . ${SCRIPTLIB}/base.src
 
   CONFIGFILE=${VAGRANT_CONFIG:-"/vagrant/config/default.hosts"}
   PACKAGE_LOCATION="/vagrant/scripts/packages"
-  STORM_VERSION="1.0.2"
+  STORM_VERSION=${1-"1.0.2"}
   STORM_HOME="/usr/lib/apache/storm/${STORM_VERSION}"
   STORM_LOCAL_DIR="/app/storm"
 
   # System Hostnames
   ZOOKEEPER_SRVR=$(get_hostname ${CONFIGFILE} zookeeper)
   NIMBUS_SRVR=$(get_hostname ${CONFIGFILE} nimbus)
-
-  STORM_MAJOR_VERSION=$(echo ${STORM_VERSION} | grep -o '^[0-9]*')
-
-  if [ ${STORM_MAJOR_VERSION} -lt 1 ]; then
-    NIMBUS_SRVR=$(echo $NIMBUS_SRVR | grep -o '^[a-z.]*')
-  elif [ ${STORM_MAJOR_VERSION} -eq 1 ]; then
-    NIMBUS_SRVR=$(echo $NIMBUS_SRVR | sed -Ee 's/([[:alnum:].-]*)/"\1"/g' -e 's/\s/, /')
-  fi
 
   # Fetch, Install, Configure
   # Prerequisites
@@ -70,7 +62,6 @@ install_storm() {
   echo DEBUG=${STORM_VERSION}
   install_storm "${STORM_VERSION}"
   configure_storm "${STORM_HOME}/conf"
-  chown -R storm:storm ${STORM_HOME}
 
   # Install Supervisor & Craft Configuration Based on Script name
   # storm 1.x nimbus should have logviewer
@@ -82,5 +73,16 @@ install_storm() {
       setup_storm_supervisord "supervisor logviewer"
       ;;
   esac
+
+}
+
+#######
+# setup_proxy()
+#
+# notes: hostname should have nimbus or supervisor in the name
+# description: installs storm on vagrant environment
+##########################################
+setup_proxy() {
+
 
 }
