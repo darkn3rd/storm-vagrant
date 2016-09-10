@@ -26,15 +26,18 @@ Vagrant.configure("2") do |config|
       when /nimbus/
         node.vm.provider "virtualbox" do |vbox|
           vbox.name = "#{hostname}_#{TIME}"
-          vbox.memory = 1536 # npm 1.1gb + node_gyp 700mb + cc1plus 87mb
+          vbox.memory = 1536
           vbox.cpus = 2
         end
       else
         node.vm.provider("virtualbox") { |vbox| vbox.name = "#{hostname}_#{TIME}" }
       end
 
-      # Provision
-      node.vm.provision "shell", path: "scripts/#{hostname.split(/\./)[0]}.sh"
+      # Provision Using Shell Script
+      node.vm.provision "shell" do |script|
+        script.env = "VAGRANT_ENV=#{ENVIRONMENT}"
+        script.path = "scripts/#{hostname.split(/\./)[0]}.sh"
+      end
     end
   end
 end
