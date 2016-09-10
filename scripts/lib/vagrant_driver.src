@@ -55,7 +55,7 @@ install_storm() {
   if [ ${STORM_MAJOR_VERSION} -lt 1 ]; then
     NIMBUS_SRVR=$(echo $NIMBUS_SRVR | grep -o '^[a-z.]*')
   elif [ ${STORM_MAJOR_VERSION} -eq 1 ]; then
-    NIMBUS_SRVR=$(echo $NIMBUS_SRVR | sed -Ee 's/([[:alnum:].]*)/"\1"/g' -e 's/\s/, /')
+    NIMBUS_SRVR=$(echo $NIMBUS_SRVR | sed -Ee 's/([[:alnum:].-]*)/"\1"/g' -e 's/\s/, /')
   fi
 
   # Fetch, Install, Configure
@@ -70,8 +70,10 @@ install_storm() {
   echo DEBUG=${STORM_VERSION}
   install_storm "${STORM_VERSION}"
   configure_storm "${STORM_HOME}/conf"
+  chown -R storm:storm ${STORM_HOME}
 
   # Install Supervisor & Craft Configuration Based on Script name
+  # storm 1.x nimbus should have logviewer
   case $(/bin/hostname) in
     *nimbus*)
       setup_storm_supervisord "nimbus ui"
