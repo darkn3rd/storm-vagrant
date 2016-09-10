@@ -1,5 +1,4 @@
 192.168.54.3 zookeeper.dev
-192.168.54.4 nimbus.dev primary
-192.168.54.5 supervisor1.dev
-192.168.54.6 supervisor2.dev
-192.168.54.12 nimbus2.dev
+192.168.54.10 nimbus.dev primary
+192.168.54.20 supervisor1.dev
+192.168.54.21 supervisor2.dev
