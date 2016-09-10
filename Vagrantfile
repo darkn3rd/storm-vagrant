@@ -21,10 +21,19 @@ Vagrant.configure("2") do |config|
       node.vm.box = "ubuntu/trusty64"
       node.vm.hostname = "#{hostname}"
       node.vm.network "private_network", ip: ipaddr
-      node.vm.provider("virtualbox") { |vbox| vbox.name = "#{hostname}_#{TIME}" }
+
+      case hostname
+      when /nimbus/
+        node.vm.provider "virtualbox" do |vbox|
+          vbox.name = "#{hostname}_#{TIME}"
+          vbox.memory = 1536 # npm 1.1gb + node_gyp 700mb + cc1plus 87mb
+          vbox.cpus = 2
+        end
+      else
+        node.vm.provider("virtualbox") { |vbox| vbox.name = "#{hostname}_#{TIME}" }
+      end
 
       # Provision
-      node.vm.provision "shell", path: "scripts/setup-base.sh"
       node.vm.provision "shell", path: "scripts/#{hostname.split(/\./)[0]}.sh"
     end
   end
