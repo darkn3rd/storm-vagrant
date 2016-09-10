@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 SCRIPT_PATH="/vagrant/scripts"
 SCRIPTLIB="${SCRIPT_PATH}/lib"
-. ${SCRIPTLIB}/zookeeper.src
+. ${SCRIPTLIB}/vagrant_driver.src
 
 ${SCRIPT_PATH}/setup-base.sh     # setup ssh_config, hosts
-install_zookeper
-create_user storm
+setup_zookeeper                  # install/config zookeeper

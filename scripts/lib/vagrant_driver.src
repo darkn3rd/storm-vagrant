@@ -3,15 +3,35 @@
 # AUTHOR: Joaquin Menchaca
 # CREATED: 2016-05-01
 #
-# PURPOSE: install Apache Storm 0.10.0 on Vagrant
+# PURPOSE: install Apache Storm 0.10.0 on Vagrant environment
 # DEPENDENCIES:
-#  * provisionlib.src
 #  * Vagrant environment
+#  * Ubuntu 14.04 Trusty Tahr guest systems
 #
 # FUNCTIONS LIST:
 #   * setup_maven()
-#   * setup_storm()
 #   * setup_proxy()
+#   * setup_storm()
+#   * setup_zookeeper()
+
+#######
+# setup_zookeeper()
+#
+# notes: installs and configures zookeeper
+##########################################
+setup_zookeeper() {
+
+  ##################### LIBRARIES #####################
+  . ${SCRIPTLIB}/base.src
+  ##################### VARIABLES #####################
+  STORM_ENV=${STORM_ENV:-"default"}
+  CONFIGFILE="/vagrant/config/${STORM_ENV}.hosts"
+  ZOOKEEPER_SRVR=$(get_hostname ${CONFIGFILE} zookeeper) # fetch zookeeper srvrs
+
+  ##################### MAVEN SETUP #####################
+  install_zookeper
+  config_zookeeper ${ZOOKEEPER_SRVR}
+}
 
 #######
 # setup_maven()
@@ -53,7 +73,9 @@ setup_storm() {
   . ${SCRIPTLIB}/base.src
 
   ##################### VARIABLES #####################
-  CONFIGFILE=${VAGRANT_CONFIG:-"/vagrant/config/default.hosts"}
+  STORM_ENV=${STORM_ENV:-"default"}
+  CONFIGFILE="/vagrant/config/${STORM_ENV}.hosts"
+
   PACKAGE_LOCATION="/vagrant/scripts/packages"
   STORM_VERSION=${1-"1.0.2"}
   STORM_MAJOR_VERSION=$(echo ${STORM_VERSION} | grep -o '^[0-9]*')

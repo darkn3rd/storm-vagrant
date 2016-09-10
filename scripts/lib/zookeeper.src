@@ -9,6 +9,7 @@
 #
 # FUNCTIONS LIST:
 #   * install_zookeper()
+#   * config_zookeper()
 
 . ${SCRIPTLIB}/common.src
 
@@ -24,4 +25,26 @@ install_zookeper() {
     apt-get -qq update && apt-get -y upgrade
     apt-get -y install zookeeper zookeeperd
   fi
+}
+
+#######
+# config_zookeeper()
+#
+# description: configures follower and leader ports
+#  for multiple zookeeper servers
+# usage: config_zookeeper zk1.dev zk2.dev
+##########################################
+config_zookeeper() {
+  [ $# -gt 1 ] || return 0
+  ZOOKEEPER_SRVR=$@
+  count=1
+  cat <<-ZK_EOF > zoo.cfg
+tickTime=2000
+initLimit=10
+syncLimit=5
+dataDir=/var/lib/zookeeper
+clientPort=2181
+$(for SRVR in ${ZOOKEEPER_SRVR}; do echo "server.$((count++))=$SRVR:2888:3888"; done)
+ZK_EOF
+
 }
