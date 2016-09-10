@@ -7,6 +7,11 @@
 # DEPENDENCIES:
 #  * provisionlib.src
 #  * Vagrant environment
+#
+# FUNCTIONS LIST:
+#   * setup_maven()
+#   * setup_storm()
+#   * setup_proxy()
 
 #######
 # setup_maven()
@@ -15,14 +20,20 @@
 # description: installs storm on vagrant environment
 ##########################################
 setup_maven() {
+  # optionally install maven if indicated for install
+  grep "${HOSTNAME}" ${CONFIGFILE} | grep -q "maven" || return 0
+
+  ##################### LIBRARIES #####################
   . ${SCRIPTLIB}/maven.src
   . ${SCRIPTLIB}/java.src
   . ${SCRIPTLIB}/storm.src
 
+  ##################### VARIABLES #####################
   # Fetch, Install, Configure
   PACKAGE_LOCATION="/vagrant/scripts/packages"
   MAVEN_VERSION=${1-"3.3.9"}
 
+  ##################### MAVEN SETUP #####################
   fetch_maven_package "${MAVEN_VERSION}"
   install_java8
   install_maven "${MAVEN_VERSION}"
@@ -36,38 +47,55 @@ setup_maven() {
 # description: installs storm on vagrant environment
 ##########################################
 setup_storm() {
+  ##################### LIBRARIES #####################
   . ${SCRIPTLIB}/storm.src
   . ${SCRIPTLIB}/java.src
   . ${SCRIPTLIB}/base.src
 
+  ##################### VARIABLES #####################
   CONFIGFILE=${VAGRANT_CONFIG:-"/vagrant/config/default.hosts"}
   PACKAGE_LOCATION="/vagrant/scripts/packages"
   STORM_VERSION=${1-"1.0.2"}
+  STORM_MAJOR_VERSION=$(echo ${STORM_VERSION} | grep -o '^[0-9]*')
   STORM_HOME="/usr/lib/apache/storm/${STORM_VERSION}"
   STORM_LOCAL_DIR="/app/storm"
 
-  # System Hostnames
-  ZOOKEEPER_SRVR=$(get_hostname ${CONFIGFILE} zookeeper)
-  NIMBUS_SRVR=$(get_hostname ${CONFIGFILE} nimbus)
+  ##################### JAVA SETUP #####################
+  install_java8
 
-  # Fetch, Install, Configure
+  ##################### APACHE-STORM SETUP #####################
+  ZOOKEEPER_SRVR=$(get_hostname ${CONFIGFILE} zookeeper) # fetch zookeeper srvrs
+  NIMBUS_SRVR=$(get_hostname ${CONFIGFILE} nimbus)       # fetch nimbus srvrs
+
   # Prerequisites
   [ -d ${PACKAGE_LOCATION} ] || mkdir -vp ${PACKAGE_LOCATION}
   fetch_storm_package "${STORM_VERSION}"
-  install_java8
 
   # Storm Installation
   create_user "storm"
   create_local_dir
-  echo DEBUG=${STORM_VERSION}
   install_storm "${STORM_VERSION}"
   configure_storm "${STORM_HOME}/conf"
 
-  # Install Supervisor & Craft Configuration Based on Script name
-  # storm 1.x nimbus should have logviewer
+  ##################### SUPERVISORD SETUP #####################
+  # setup up initial designated configuration
+  NIMBUS_SERVICES="nimbus"
+
+  # designate 'storm ui' on primary system
+  PRIMARY_SRVR=$(grep primary ${CONFIGFILE} | awk '{ print $2 }')
+  HOSTNAME=$(/bin/hostname)
+  if [ ${HOSTNAME} = ${PRIMARY_SRVR} ]; then
+    NIMBUS_SERVICES="${NIMBUS_SERVICES} ui"
+
+  # designate 'storm logviewer' server if Storm 1.x
+  if [ ${STORM_MAJOR_VERSION} -ge 1 ]; then
+    NIMBUS_SERVICES="${NIMBUS_SERVICES} logviewer"
+  fi
+
+  # install and configure supervisord service manager
   case $(/bin/hostname) in
     *nimbus*)
-      setup_storm_supervisord "nimbus ui"
+      setup_storm_supervisord "${NIMBUS_SERVICES}"
       ;;
     *supervisor*)
       setup_storm_supervisord "supervisor logviewer"
@@ -79,10 +107,52 @@ setup_storm() {
 #######
 # setup_proxy()
 #
-# notes: hostname should have nimbus or supervisor in the name
-# description: installs storm on vagrant environment
+# notes: setup reverse proxy server with routes back to storm servers
 ##########################################
 setup_proxy() {
+  # optionally install reverse-proxy if indicated for install
+  grep "${HOSTNAME}" ${CONFIGFILE} | grep -q "proxy" || return 0
 
+  ##################### VARIABLES #####################
+  CONFIGFILE=${VAGRANT_CONFIG:-"/vagrant/config/default.hosts"}
+  SCRIPT_PATH="/vagrant/scripts"
+  SCRIPTLIB="${SCRIPT_PATH}/lib"
+  # check ${STORM_VERSION}
+  STORM_MAJOR_VERSION=$(echo ${STORM_VERSION} | grep -o '^[0-9]*')
+
+
+  ##################### LIBRARIES #####################
+  . ${SCRIPTLIB}/nginx.src  # install_nginx(), remote_site(), enable_site()
+  . ${SCRIPTLIB}/base.src   # get_ipaddress()
+
+  ##################### NGINX REVERSE-PROXY SETUP #####################
+
+  # Install nginx from vendor PPA
+  install_nginx
+  # Remove Default Site
+  remove_site 'default'
+
+  ##################### MAIN EDGE SITE #####################
+  # Configure and Enable Primary Edge Site (80->8080)
+  PRIMARY_SRVR=$(grep primary ${CONFIGFILE} | awk '{ print $2 }')
+  create_site 80 "http://$(get_ipaddress ${CONFIGFILE} ${PRIMARY_SRVR}):8080" 'storm.dev' "${PRIMARY_SRVR}"
+  enable_site 'storm.dev'
+
+  ##################### LOGVIEWER SITES #####################
+  NIMBUS_SRVR=$(get_hostname ${CONFIGFILE} nimbus)
+  SUPERVISOR_SRVR=$(get_hostname ${CONFIGFILE} supervisor)
+
+  # Configure Nimbus Server Line (0.x vs 1.x)
+  if [ ${STORM_MAJOR_VERSION} -lt 1 ]; then
+    LOGVIEWER_SRVR=${SUPERVISOR_SRVR}
+  elif [ ${STORM_MAJOR_VERSION} -ge 1 ]; then
+    LOGVIEWER_SRVR="${SUPERVISOR_SRVR} ${NIMBUS_SRVR}"
+  fi
+
+  # Install Logviewer Route (8000->8000)
+  for SRVR in ${LOGVIEWER_SRVR}; do
+    create_site 8000 "http://$(get_ipaddress ${CONFIGFILE} ${SRVR}):8000" "${SRVR}"
+    enable_site "${SRVR}"
+  done
 
 }
