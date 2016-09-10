@@ -38,6 +38,10 @@ config_zookeeper() {
   [ $# -gt 1 ] || return 0
   ZOOKEEPER_SRVR=$@
   count=1
+  # Note:
+  #  On Ubuntu 14.04, symlnks:
+  #    /etc/zookeeper/conf/ -> /etc/alternatives/zookeeper-conf/
+  #    /etc/alternatives/zookeeper-conf/ -> /etc/zookeeper/conf_example
   cat <<-ZK_EOF > /etc/zookeeper/conf/zoo.cfg
 tickTime=2000
 initLimit=10
