@@ -14,18 +14,21 @@ The following packages are installed:
  * Zookeeper 3.4.5 (apt-get)
  * Apache Storm (downloaded tarball)
  * Supvervisord service supervision (apt-get)
+
+Optional packages:  
  * Maven build tools (optional)
  * NGiNX reverse-proxy (optional) (see [PROXY.MD](PROXY.MD))
 
-Both Apache Storm 0.10.x and 1.0.x are supported.
+Apache Storm `0.9.7`, `0.10.1` and `1.0.2` have been tested
 
 ## **Instructions**
 
 With [Vagrant](https://www.vagrantup.com/) and [Virtualbox](https://www.virtualbox.org/wiki/Downloads) installed, just run:
 
 ```bash
-$ # Select an environment
-$ export VAGRANT_ENV=default   # default
+$ # Select an environment and version
+$ export STORM_ENV="default"     # default
+$ export STORM_VERSION="0.10.11" # defaults to 1.0.2
 $ vagrant up
 ```
 
@@ -33,34 +36,37 @@ This brings up several systems on `192.168.54.0/24` (see `config/` directory). Y
 
 ### **Running a Topology**
 
-To run a topology, log into nimbus system (default) and submit a topology to the cluster from the topologies directory:
+After logging into any system with storm installed, e.g. nimbus or supervisor, run this:
 
 ```bash
-$ VERSION='1.0.2'
-$ vagrant ssh
-vagrant@nimbus:~$ storm jar \
-  /vagrant/topologies/storm-starter-${VERSION}.jar \
-  storm.starter.RollingTopWords \
-  my_topology_name remote
+$ STORM_VERSION='0.9.7'
+$ STORM_MAJOR_VERSION=$(echo ${STORM_VERSION} | grep -o '^[0-9]*')
+$ PACKAGE_PATH='storm.starter'
+$ [ $STORM_MAJOR_VERSION -ge 1 ] && PACKAGE_PATH="org.apache.${PACKAGE_PATH}"
+$ cd /usr/lib/apache/storm/${STORM_VERSION}/examples/storm-starter
+$ storm jar \
+    storm-starter-topologies-${STORM_VERSION}.jar \
+    ${PACKAGE_PATH}.RollingTopWords \
+    rolling_top_words_example remote
 ```
 
-vagrant@nimbus:~$ storm jar /vagrant/topologies/storm-starter-1.0.2.jar org.apache.storm.starter.RollingTopWords qingbo_demo remote
+**Note**: The sample topologies after 1.x start with `org.apache.storm.starter`, while 0.x are `storm.starter`.
 
 ### **Building Topologies**
 
 Bring up build environment
 ```bash
-$ export VAGRANT_ENV=dev_remote
+$ export STORM_ENV=dev_remote
+$ export STORM_VERSION="1.0.2"
 $ vagrant up         # if not currently brought up
-$ vagrant provision  # if re-provisioning is needed
 $ vagrant ssh        # log into primary system
 ```
 
 In the vagrant system:
 
 ```bash
-$ VERSION='1.0.2'
-$ cd /usr/lib/apache/storm/${VERSION}/examples/storm-starter
+$ STORM_VERSION='1.0.2'
+$ cd /usr/lib/apache/storm/${STORM_VERSION}/examples/storm-starter
 $ sudo mvn clean install -DskipTests=true
 $ cp target/storm-starter-*.jar /vagrant/topologies/
 ```
