@@ -72,7 +72,7 @@ $ cp target/storm-starter-*.jar /vagrant/topologies/
 
 ### **Using A Proxy Server**
 
-You can view the cluster from your host using the web interface, `storm ui` and `storm logviewer`.  Optional you can use a proxy server to route to appropriate backend servers:
+You can use a proxy server to route to appropriate backend servers:
 
  * [Proxy Instructions](PROXY.MD)
 
