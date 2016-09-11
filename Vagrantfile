@@ -3,8 +3,9 @@
 
 ############### CONSTANTS
 TIME = Time.now.strftime("%Y%m%d%H%M%S")
-ENVIRONMENT = ENV['VAGRANT_ENV'] || 'default'
-CONFIGFILE_HOSTS = "./config/#{ENVIRONMENT}.hosts"
+STORM_ENV = ENV['STORM_ENV'] || 'default'
+STORM_VERSION = ENV['STORM_VERSION'] || "1.0.2" # 0.9.7, 0.10.1, 1.0.2
+CONFIGFILE_HOSTS = "./config/#{STORM_ENV}.hosts"
 
 ############### BUILD RUBY DATA STRUCTURE (Hash)
 hosts = {}  # empty data-structure
@@ -21,11 +22,24 @@ Vagrant.configure("2") do |config|
       node.vm.box = "ubuntu/trusty64"
       node.vm.hostname = "#{hostname}"
       node.vm.network "private_network", ip: ipaddr
-      node.vm.provider("virtualbox") { |vbox| vbox.name = "#{hostname}_#{TIME}" }
 
-      # Provision
-      node.vm.provision "shell", path: "scripts/setup-base.sh"
-      node.vm.provision "shell", path: "scripts/#{hostname.split(/\./)[0]}.sh"
+      case hostname
+      when /nimbus/
+        node.vm.provider "virtualbox" do |vbox|
+          vbox.name = "#{hostname}_#{TIME}"
+          vbox.memory = 1024
+          vbox.cpus = 2
+        end
+      else
+        node.vm.provider("virtualbox") { |vbox| vbox.name = "#{hostname}_#{TIME}" }
+      end
+
+      # Provision Using Shell Script
+      node.vm.provision "shell" do |script|
+        script.env = { "STORM_ENV" => STORM_ENV }
+        script.args = [STORM_VERSION]
+        script.path = "scripts/#{hostname.split(/\./)[0]}.sh"
+      end
     end
   end
 end

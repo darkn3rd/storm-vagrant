@@ -44,12 +44,22 @@ configure_storm() {
   ZOOKEEPER_SRVR=${ZOOKEEPER_SRVR:-zookeeper.dev}
   NIMBUS_SRVR=${NIMBUS_SRVR:-nimbus.dev}
   STORM_LOCAL_DIR=${STORM_LOCAL_DIR:-"/app/storm"}
+  STORM_MAJOR_VERSION=$(echo ${STORM_VERSION} | grep -o '^[0-9]*')
 
-  cat <<-STORM_EOF > ${STORM_CONFIG_PATH}/storm.yaml
+  # Configure Nimbus Server Line (0.x vs 1.x)
+  if [ ${STORM_MAJOR_VERSION} -lt 1 ]; then
+    NIMBUS_SRVR=$(echo $NIMBUS_SRVR | grep -o '^[a-z.]*')
+    NIMBUS_HOST_CONFIG="nimbus.host: ${NIMBUS_SRVR}"
+  elif [ ${STORM_MAJOR_VERSION} -eq 1 ]; then
+    NIMBUS_SRVR=$(echo $NIMBUS_SRVR | sed -Ee 's/([[:alnum:].-]*)/"\1"/g' -e 's/\s/, /')
+    NIMBUS_HOST_CONFIG="nimbus.seeds: [${NIMBUS_SRVR}]"
+  fi
+
+  cat <<-STORM_EOF > ${STORM_HOME}/conf/storm.yaml
 storm.zookeeper.servers:
-    - ${ZOOKEEPER_SRVR}
+$(for SRVR in ${ZOOKEEPER_SRVR}; do echo "  - ${SRVR}"; done)
 
-nimbus.host: ${NIMBUS_SRVR}
+${NIMBUS_HOST_CONFIG}
 nimbus.childopts: "-Xmx1024m -Djava.net.preferIPv4Stack=true"
 
 ui.childopts: "-Xmx768m -Djava.net.preferIPv4Stack=true"
@@ -60,12 +70,12 @@ worker.childopts: "-Xmx768m -Djava.net.preferIPv4Stack=true"
 storm.local.dir: "${STORM_LOCAL_DIR}"
 
 supervisor.slots.ports:
-    - 6700
-    - 6701
-    - 6702
-    - 6703
+  - 6700
+  - 6701
+  - 6702
+  - 6703
 STORM_EOF
-
+  chown -R storm:storm ${STORM_HOME}
   ln -sf ${STORM_HOME}/conf/storm.yaml /etc/storm/storm.yaml
 
 }
@@ -124,7 +134,7 @@ install_storm() {
     mv -v /usr/lib/apache/storm/apache-storm-${VERSION} ${STORM_HOME}
 
     ##### Place Link in Executable Path
-    ln -s ${STORM_HOME}/bin/storm /usr/local/bin/storm
+    ln -sf ${STORM_HOME}/bin/storm /usr/local/bin/storm
     [ -d /etc/storm ] || mkdir -vp /etc/storm
   fi
 }

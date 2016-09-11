@@ -1,4 +1,4 @@
-192.168.54.3 zookeeper.dev
+192.168.54.3 zookeeper.dev proxy.dev
 192.168.54.10 nimbus.dev maven.dev primary
 192.168.54.20 supervisor1.dev
 192.168.54.21 supervisor2.dev

@@ -71,5 +71,5 @@ MAVEN_EOF
     . /etc/profile.d/maven.sh
   fi
 
-    ln -s ${MAVEN_HOME}/bin/mvn /usr/local/bin/mvn
+    ln -sf ${MAVEN_HOME}/bin/mvn /usr/local/bin/mvn
 }

@@ -1,58 +1,48 @@
 # **Configure Proxy Server**
 
-If you wanted to have one front-end web server that can route to hidden servers appropriately, some notes on setting this up locally.
+This sets up a front web [reverse-proxy](https://en.wikipedia.org/wiki/Reverse_proxy) web server to route traffic to back end servers.  Even though virtualbox allows direct access, you simulate restricted network using this system.
 
+This has two parts, client side dns cache server using DNSMasq, and back-end proxy server using NGiNX.
 
-## **Host-Side Requirements**
+## **1. Client-Side Requirements**
 
-On the host you can either edit your hosts file, or install a DNS caching server to resolve local DNS names.
+Use the `hosts` file or dns-cache like DNSMasq.  Designate `192.168.54.3` as the reverse-proxy web service.
 
 ### **Hosts File**
 
-On Linux system, this is in `/etc/hosts`.  Other systems may vary.  You add entries like this, all pointing to the proxy server:
-
 ```
-192.168.54.21 zookeeper.dev
-192.168.54.21 nimbus.dev
-192.168.54.21 supervisor1.dev
-192.168.54.21 supervisor2.dev
-192.168.54.21 storm.dev
+192.168.54.3 zookeeper.dev zookeeper2.dev nimbus.dev nimbus2.dev supervisor1.dev supervisor2.dev storm.dev
 ```
 
 ### **DNS cache Server: DNSMasq**
 
-```conf
-address=/nimbus.dev/192.168.54.21
-address=/supervisor1/192.168.54.21
-address=/supervisor2/192.168.54.21
-address=/zookeeper.dev/192.168.54.21
-address=/storm.dev/192.168.54.21
+```
+address=/nimbus.dev/192.168.54.3
+address=/nimbus2.dev/192.168.54.3
+address=/supervisor1.dev/192.168.54.3
+address=/supervisor2.dev/192.168.54.3
+address=/zookeeper.dev/192.168.54.3
+address=/zookeeper2.dev/192.168.54.3
+address=/storm.dev/192.168.54.3
 ```
 
-## **Using Proxy Server**
+## **2. Proxy Server**
 
-With above pre-requisites met, i.e. hosts or dns cache configuration, and a previously compiled topology in the `topologies/` directory, run a topology (below), and then point the web browser to http://storm.dev.
+Point the web browser to http://storm.dev once systems come up.
 
 ```bash
-$ # bring up environment with proxy server addition
-$ export VAGRANT_ENV=proxy
+$ export STORM_ENV="ha_proxy"  # high-availability storm w/ proxy
 $ vagrant up
-$ # run topology
-$ vagrant ssh
-vagrant@nimbus:~$ storm jar \
-  /vagrant/topologies/storm-starter-0.10.0.jar \
-  storm.starter.RollingTopWords \
-  my_topology_name remote
 ```
 
-## **DNSMasq on Mac OS X**
+## **3. Mac OS X Notes**
 
 ### **Install**
 
+[Homebrew](brew.sh) must be installed for this.
+
 ```bash
-# Update your homebrew installation
 brew up
-# Install dnsmasq
 brew install dnsmasq
 ```
 
@@ -80,7 +70,7 @@ sudo launchctl start homebrew.mxcl.dnsmasq
 ```bash
 dig storm.dev @127.0.0.1
 ping -c 1 storm.dev
-curl storm.dev:8080
+curl storm.dev
 ```
 
 ### **Troubleshooting**

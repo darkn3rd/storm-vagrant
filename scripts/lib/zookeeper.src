@@ -9,6 +9,7 @@
 #
 # FUNCTIONS LIST:
 #   * install_zookeper()
+#   * config_zookeper()
 
 . ${SCRIPTLIB}/common.src
 
@@ -21,7 +22,41 @@
 install_zookeper() {
   if ! dpkg -l "zookeeperd" &> /dev/null; then
     export DEBIAN_FRONTEND=noninteractive
-    apt-get update && apt-get -y upgrade
+    apt-get -qq update && apt-get -y upgrade
     apt-get -y install zookeeper zookeeperd
   fi
+}
+
+#######
+# config_zookeeper()
+#
+# description: configures follower and leader ports
+#  for multiple zookeeper servers
+# usage: config_zookeeper zk1.dev zk2.dev
+##########################################
+config_zookeeper() {
+  # create symlinks of zookeeper tools
+  ZOOKEEPER_PATH="/usr/share/zookeeper"
+  cd ${ZOOKEEPER_PATH}/bin/
+  for ITEM in *; do
+    ln -sf "${ZOOKEEPER_PATH}/bin/${ITEM}" "/usr/local/bin/${ITEM}"
+  done
+
+  # configure multiple zookeeper systems
+  [ $# -gt 1 ] || return 0 # exit if only one zookeeper, defaults fine
+  ZOOKEEPER_SRVR=$@
+  count=1
+  # Note:
+  #  On Ubuntu 14.04, symlnks:
+  #    /etc/zookeeper/conf/ -> /etc/alternatives/zookeeper-conf/
+  #    /etc/alternatives/zookeeper-conf/ -> /etc/zookeeper/conf_example
+  cat <<-ZK_EOF > /etc/zookeeper/conf/zoo.cfg
+tickTime=2000
+initLimit=10
+syncLimit=5
+dataDir=/var/lib/zookeeper
+clientPort=2181
+$(for SRVR in ${ZOOKEEPER_SRVR}; do echo "server.$((count++))=$SRVR:2888:3888"; done)
+ZK_EOF
+
 }

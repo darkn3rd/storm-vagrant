@@ -1,4 +1,6 @@
 192.168.54.3 zookeeper.dev
+192.168.54.4 zookeeper2.dev
 192.168.54.10 nimbus.dev primary
+192.168.54.11 nimbus2.dev
 192.168.54.20 supervisor1.dev
 192.168.54.21 supervisor2.dev

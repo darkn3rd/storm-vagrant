@@ -1,77 +1,89 @@
 # **Vagrant-Shell Storm Cluster**
 
     by Joaquin Menchaca on May 2nd, 2016
-    Updated September 1st, 2016
+    Updated September 10th, 2016
 
-This creates a Apache Storm Cluster using Vagrant with shell provisioning.
+This creates a [Apache Storm](http://storm.apache.org/) Cluster using [Vagrant](https://www.vagrantup.com/) with shell provisioning.
 
 ## **About**
 
-I set out to build a more recent Apache Storm Cluster (version 0.10.0) using [official docs](http://storm.apache.org/releases/0.10.0/Setting-up-a-Storm-cluster.html) and  insights from a collage of older How-Tos, [Dockerfiles](https://hub.docker.com/search/?q=storm), and provisioning scripts ([pallet](http://palletops.com), [puppet](https://puppet.com), [chef](https://www.chef.io), [ansible](https://www.chef.io), etc.).  From all of this research, I put together these some provisioning scripts that will build a small cluster (zookeeper, nimbus, 2 supervisor slaves) running on Ubuntu Trusty Tahr.
+This builds a minimal Apache Storm cluster.  These scripts have been tested with `0.9.7`, `0.10.1`, and `1.0.2`.
 
 The following packages are installed:
  * Oracle JDK 1.8 (webupd8team PPA)
  * Zookeeper 3.4.5 (apt-get)
- * Apache Storm 0.10.0 (downloaded tarball)
- * Supvervisor (apt-get)
+ * Apache Storm (downloaded tarball)
+ * Supvervisord service supervision (apt-get)
+
+Optional packages:  
+ * Maven build tools
+ * NGiNX reverse-proxy (see [PROXY.MD](PROXY.MD))
 
 ## **Instructions**
 
 With [Vagrant](https://www.vagrantup.com/) and [Virtualbox](https://www.virtualbox.org/wiki/Downloads) installed, just run:
 
-```ShellSession
+```bash
+$ # Select an environment and version
+$ export STORM_ENV="default"     # default
+$ export STORM_VERSION="0.10.1" # defaults to 1.0.2
 $ vagrant up
 ```
 
-This brings up four systems on `192.168.54.0/24` (see `config/global.hosts`). You then can point a web browser to http://192.168.54.4:8080 to view the GUI.
+This brings up several systems on `192.168.54.0/24` (see `config/` directory). You then can point a web browser to http://192.168.54.10:8080.
 
 ### **Running a Topology**
 
-To run a topology, log into nimbus system (default) and submit a topology to the cluster from the topologies directory:
+After logging into any system with storm installed, e.g. nimbus or supervisor, run this:
 
-```ShellSession
-$ vagrant ssh
-vagrant@nimbus:~$ storm jar \
-  /vagrant/topologies/storm-starter-0.10.0.jar \
-  storm.starter.RollingTopWords \
-  my_topology_name remote
+```bash
+$ # select appropriate storm starter and package path (varies)
+$ STORM_VERSION='0.9.7'
+$ STORM_MAJOR_VERSION=$(echo ${STORM_VERSION} | grep -o '^[0-9]*')
+$ PACKAGE_PATH='storm.starter'
+$ [ $STORM_MAJOR_VERSION -ge 1 ] && PACKAGE_PATH="org.apache.${PACKAGE_PATH}"
+$ cd /usr/lib/apache/storm/${STORM_VERSION}/examples/storm-starter
+$ storm jar \
+    storm-starter-topologies-${STORM_VERSION}.jar \
+    ${PACKAGE_PATH}.RollingTopWords \
+    rolling_top_words_example remote
 ```
+
+**Note**: The sample topologies after 1.x start with `org.apache.storm.starter`, while 0.x are `storm.starter`.
 
 ### **Building Topologies**
 
-You need to bring up a build environment.  There are two supported:
-  *  `dev_local` for a single-node build environment, and
-  * `dev_remote` for build environment with a full cluster.
-
-First bring up the environment(s):
-
-```ShellSession
-$ export VAGRANT_ENV=dev_remote
-$ vagrant up
-$ vagrant ssh
+Bring up build environment
+```bash
+$ export STORM_ENV=dev_remote
+$ export STORM_VERSION="1.0.2"
+$ vagrant up         # if not currently brought up
+$ vagrant ssh        # log into primary system
 ```
 
-This brings up the maven build system, then you can compile topologies, such as the storm starter.
+In the vagrant system:
 
-```ShellSession
-$ cd /usr/lib/apache/storm/0.10.0/examples/storm-starter
+```bash
+$ STORM_VERSION='1.0.2'
+$ cd /usr/lib/apache/storm/${STORM_VERSION}/examples/storm-starter
 $ sudo mvn clean install -DskipTests=true
-$ cp target/storm-starter-0.10.0.jar /vagrant/topologies/
+$ cp target/storm-starter-*.jar /vagrant/topologies/
 ```
 
 ### **Using A Proxy Server**
 
 You can view the cluster from your host using the web interface, `storm ui` and `storm logviewer`.  Optional you can use a proxy server to route to appropriate backend servers:
 
-* [Proxy Instructions](PROXY.MD)
+ * [Proxy Instructions](PROXY.MD)
 
 ### **Prerequisites**
 
-Both [Vagrant](https://www.vagrantup.com/) and [Virtualbox](https://www.virtualbox.org/wiki/Downloads) must be installed.  You can download them manually, or use the tools listed below for Mac OS X or Windows.
+ *  [Vagrant](https://www.vagrantup.com/)
+ *  [Virtualbox](https://www.virtualbox.org/wiki/Downloads)
 
 #### **Mac OS X**
 
-You can get the prerequisites using [Homebrew](http://brew.sh/), and [Brew Bundle](https://github.com/Homebrew/homebrew-bundle):
+The package manger [Homebrew](http://brew.sh/), and [Brew Bundle](https://github.com/Homebrew/homebrew-bundle) can be used to installed the pre-requisites:
 
 ```bash
 /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
@@ -91,7 +103,7 @@ SET PATH=%PATH%;%ALLUSERSPROFILE%\chocolatey\bin
 choco install chocolately.config
 ```
 
-This also installs a bash shell and ssh client using [MSYS2](https://msys2.github.io/).
+This also installs a `bash` shell and `ssh` client using [MSYS2](https://msys2.github.io/).
 
 ## **Research**
 
