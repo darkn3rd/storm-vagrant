@@ -27,7 +27,7 @@ Vagrant.configure("2") do |config|
       when /nimbus/
         node.vm.provider "virtualbox" do |vbox|
           vbox.name = "#{hostname}_#{TIME}"
-          vbox.memory = 1536
+          vbox.memory = 1024
           vbox.cpus = 2
         end
       else

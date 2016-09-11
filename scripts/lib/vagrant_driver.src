@@ -23,6 +23,8 @@ setup_zookeeper() {
 
   ##################### LIBRARIES #####################
   . ${SCRIPTLIB}/base.src
+  . ${SCRIPTLIB}/zookeeper.src
+
   ##################### VARIABLES #####################
   STORM_ENV=${STORM_ENV:-"default"}
   CONFIGFILE="/vagrant/config/${STORM_ENV}.hosts"

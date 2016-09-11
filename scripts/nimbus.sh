@@ -9,4 +9,3 @@ MAVEN_VERSION="3.3.9"
 ${SCRIPT_PATH}/setup-base.sh              # setup ssh_config, hosts
 setup_storm ${STORM_VERSION} # install nimbus, ui
 setup_maven ${MAVEN_VERSION} # optionally install maven
-setup_proxy

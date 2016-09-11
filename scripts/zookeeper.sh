@@ -5,3 +5,6 @@ SCRIPTLIB="${SCRIPT_PATH}/lib"
 
 ${SCRIPT_PATH}/setup-base.sh     # setup ssh_config, hosts
 setup_zookeeper                  # install/config zookeeper
+
+STORM_VERSION=${1-"1.0.2"}
+setup_proxy
