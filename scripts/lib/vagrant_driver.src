@@ -3,7 +3,8 @@
 # AUTHOR: Joaquin Menchaca
 # CREATED: 2016-05-01
 #
-# PURPOSE: install Apache Storm 0.10.0 on Vagrant environment
+# PURPOSE: Vagrant front end script for orchestrating components across whole
+#  Apache Storm cluster.
 # DEPENDENCIES:
 #  * Vagrant environment
 #  * Ubuntu 14.04 Trusty Tahr guest systems
@@ -20,7 +21,6 @@
 # notes: installs and configures zookeeper
 ##########################################
 setup_zookeeper() {
-
   ##################### LIBRARIES #####################
   . ${SCRIPTLIB}/base.src
   . ${SCRIPTLIB}/zookeeper.src
@@ -146,13 +146,11 @@ setup_proxy() {
   # check ${STORM_VERSION}
   STORM_MAJOR_VERSION=$(echo ${STORM_VERSION} | grep -o '^[0-9]*')
 
-
   ##################### LIBRARIES #####################
   . ${SCRIPTLIB}/nginx.src  # install_nginx(), remote_site(), enable_site()
   . ${SCRIPTLIB}/base.src   # get_ipaddress()
 
   ##################### NGINX REVERSE-PROXY SETUP #####################
-
   # Install nginx from vendor PPA
   install_nginx
   # Remove Default Site
@@ -168,7 +166,7 @@ setup_proxy() {
   NIMBUS_SRVR=$(get_hostname ${CONFIGFILE} nimbus)
   SUPERVISOR_SRVR=$(get_hostname ${CONFIGFILE} supervisor)
 
-  # Configure Nimbus Server Line (0.x vs 1.x)
+  # Logviewer serves go on nimbus for Apache 1.x
   if [ ${STORM_MAJOR_VERSION} -lt 1 ]; then
     LOGVIEWER_SRVR=${SUPERVISOR_SRVR}
   elif [ ${STORM_MAJOR_VERSION} -ge 1 ]; then
@@ -180,5 +178,7 @@ setup_proxy() {
     create_site 8000 "http://$(get_ipaddress ${CONFIGFILE} ${SRVR}):8000" "${SRVR}"
     enable_site "${SRVR}"
   done
+
+  service nginx restart
 
 }

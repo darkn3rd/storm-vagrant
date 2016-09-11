@@ -1,13 +1,13 @@
 # **Vagrant-Shell Storm Cluster**
 
     by Joaquin Menchaca on May 2nd, 2016
-    Updated September 9th, 2016
+    Updated September 10th, 2016
 
-This creates a Apache Storm Cluster using Vagrant with shell provisioning.
+This creates a [Apache Storm](http://storm.apache.org/) Cluster using [Vagrant](https://www.vagrantup.com/) with shell provisioning.
 
 ## **About**
 
-I set out to build a more recent Apache Storm Cluster using [official docs](http://storm.apache.org/releases/0.10.0/Setting-up-a-Storm-cluster.html) and  insights from a collage of older How-Tos, [Dockerfiles](https://hub.docker.com/search/?q=storm), and provisioning scripts ([pallet](http://palletops.com), [puppet](https://puppet.com), [chef](https://www.chef.io), [ansible](https://www.chef.io), etc.).  From all of this research, I put together these some provisioning scripts that will build a small cluster (zookeeper, nimbus, 2 supervisor slaves) running on Ubuntu Trusty Tahr.
+This builds a minimal Apache Storm cluster.  These scripts have been tested with `0.9.7`, `0.10.1`, and `1.0.2`.
 
 The following packages are installed:
  * Oracle JDK 1.8 (webupd8team PPA)
@@ -16,10 +16,8 @@ The following packages are installed:
  * Supvervisord service supervision (apt-get)
 
 Optional packages:  
- * Maven build tools (optional)
- * NGiNX reverse-proxy (optional) (see [PROXY.MD](PROXY.MD))
-
-Apache Storm `0.9.7`, `0.10.1` and `1.0.2` have been tested
+ * Maven build tools
+ * NGiNX reverse-proxy (see [PROXY.MD](PROXY.MD))
 
 ## **Instructions**
 
@@ -28,17 +26,18 @@ With [Vagrant](https://www.vagrantup.com/) and [Virtualbox](https://www.virtualb
 ```bash
 $ # Select an environment and version
 $ export STORM_ENV="default"     # default
-$ export STORM_VERSION="0.10.11" # defaults to 1.0.2
+$ export STORM_VERSION="0.10.1" # defaults to 1.0.2
 $ vagrant up
 ```
 
-This brings up several systems on `192.168.54.0/24` (see `config/` directory). You then can point a web browser to http://192.168.54.4:8080 to view the GUI.
+This brings up several systems on `192.168.54.0/24` (see `config/` directory). You then can point a web browser to http://192.168.54.10:8080.
 
 ### **Running a Topology**
 
 After logging into any system with storm installed, e.g. nimbus or supervisor, run this:
 
 ```bash
+$ # select appropriate storm starter and package path (varies)
 $ STORM_VERSION='0.9.7'
 $ STORM_MAJOR_VERSION=$(echo ${STORM_VERSION} | grep -o '^[0-9]*')
 $ PACKAGE_PATH='storm.starter'
