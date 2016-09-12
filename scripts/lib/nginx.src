@@ -1,4 +1,11 @@
 #!/usr/bin/env bash
+# NAME: nginx.src
+# AUTHOR: Joaquin Menchaca
+# CREATED: 2016-09-11
+#
+# PURPOSE: Provision shell script library for NGiNX
+# DEPENDENCIES:
+#  * Ubuntu Trusty Tahr 14.04
 
 #######
 # install_nginx()

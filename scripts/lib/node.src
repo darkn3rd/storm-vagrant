@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+# NAME: node.src
+# AUTHOR: Joaquin Menchaca
+# CREATED: 2016-07-31
+#
+# PURPOSE: Provision shell script library for Node JS
+# DEPENDENCIES:
+#  * Ubuntu Trusty Tahr 14.04
+
+. ${SCRIPTLIB}/common.src
+
+#######
+# install_nodejs()
+#
+# description: installs nodejs from nodejs debian/ubuntu repo
+# usage: install_nodejs 4.x
+##########################################
+function install_nodejs {
+  NODE_VERSION=${1:-"4.x"}
+
+  VALID_NODE_VERSIONS="0.10 0.12 4.x 5.x 6.x"
+  if [[ ! "${VALID_NODE_VERSIONS}" =~ "${NODE_VERSION}" ]]; then
+    error "Invalid Node Version of ${NODE_VERSION}"
+  fi
+
+  NODE_REPO_APT_SOURCE="/etc/apt/sources.list.d/nodesource.list"
+  if [ ! -f "${NODE_REPO_APT_SOURCE}" ]; then
+      curl -sL https://deb.nodesource.com/setup_${NODE_VERSION} | bash -
+  fi
+
+  # Skip if NodeJS installed
+  if ! dpkg -l "nodejs" &> /dev/null; then
+    apt-get update -qq && apt-get -y upgrade
+    apt-get -y install build-essential nodejs libssl-dev git
+  fi
+}
