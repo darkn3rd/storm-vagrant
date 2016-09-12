@@ -12,6 +12,6 @@ setup_maven ${MAVEN_VERSION} # optionally install maven
 
 # Install Node if NODE_VERSION specified
 if [ ! -z ${NODE_VERSION} ]; then
-  echo . ${SCRIPTLIB}/node.src
-  echo install_nodejs ${NODE_VERSION}
+  . ${SCRIPTLIB}/node.src
+  install_nodejs ${NODE_VERSION}
 fi

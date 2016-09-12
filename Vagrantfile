@@ -36,7 +36,8 @@ Vagrant.configure("2") do |config|
 
       # Provision Using Shell Script
       node.vm.provision "shell" do |script|
-        script.env = { "STORM_ENV" => STORM_ENV }
+        script.env = { "STORM_ENV" => STORM_ENV,
+                       "NODE_VERSION" => ENV['NODE_VERSION']  }
         script.args = [STORM_VERSION]
         script.path = "scripts/#{hostname.split(/\./)[0]}.sh"
       end
