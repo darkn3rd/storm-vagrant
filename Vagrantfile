@@ -5,7 +5,8 @@
 TIME = Time.now.strftime("%Y%m%d%H%M%S")
 STORM_ENV = ENV['STORM_ENV'] || 'default'
 STORM_VERSION = ENV['STORM_VERSION'] || "1.0.2" # 0.9.7, 0.10.1, 1.0.2
-CONFIGFILE_HOSTS = "./config/#{STORM_ENV}.hosts"
+STORM_MAJOR_VERSION = STORM_VERSION.split(/\./)[0]
+CONFIGFILE_HOSTS = "./config/#{STORM_MAJOR_VERSION}/#{STORM_ENV}.hosts"
 
 ############### BUILD RUBY DATA STRUCTURE (Hash)
 hosts = {}  # empty data-structure

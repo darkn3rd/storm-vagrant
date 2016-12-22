@@ -14,7 +14,9 @@
 
 ##### Variables
 STORM_ENV=${STORM_ENV:-"default"}
-CONFIGFILE="/vagrant/config/${STORM_ENV}.hosts"
+STORM_MAJOR_VERSION=$(echo ${STORM_VERSION} | grep -o '^[0-9]*')
+CONFIGFILE="/vagrant/config/${STORM_MAJOR_VERSION}/${STORM_ENV}.hosts"
+
 SCRIPT_PATH="/vagrant/scripts"
 SCRIPTLIB="${SCRIPT_PATH}/lib"
 
