@@ -3,8 +3,8 @@
 # AUTHOR: Joaquin Menchaca
 # CREATED: 2016-05-01
 #
-# PURPOSE: Vagrant front end script for orchestrating components across whole
-#  Apache Storm cluster.
+# PURPOSE: Vagrant orchestration script for orchestrating components across
+#  whole Apache Storm cluster.
 # DEPENDENCIES:
 #  * Vagrant environment
 #  * Ubuntu 14.04 Trusty Tahr guest systems
@@ -18,7 +18,8 @@
 #######
 # setup_zookeeper()
 #
-# notes: installs and configures zookeeper
+# notes: installs and configures zookeeper service
+#  for 1 or more zookeeper cluster
 ##########################################
 setup_zookeeper() {
   ##################### LIBRARIES #####################
@@ -38,8 +39,7 @@ setup_zookeeper() {
 #######
 # setup_maven()
 #
-# notes: hostname should have nimbus or supervisor in the name
-# description: installs storm on vagrant environment
+# description: installs maven on vagrant environment
 ##########################################
 setup_maven() {
   # optionally install maven if indicated for install
@@ -65,8 +65,18 @@ setup_maven() {
 #######
 # setup_storm()
 #
-# notes: hostname should have nimbus or supervisor in the name
 # description: installs storm on vagrant environment
+# notes:
+#   * systems will have to have 'nimbus' or 'supervisor' in the hostname
+#   * server designated as primary will have the 'storm ui' service, which
+#       is the nimbus server
+#   * storm 0.9.x has the following:
+#       * nimbus.dev - nimbus, ui
+#       * supervisor{1..2}.dev - supervisor, logviewer
+#   * storm 1.0.x+
+#       * nimbus.dev - nimbus, ui, logviewer
+#       * nimbus1.dev - nimbus, logviewer
+#       * supervisor{1..2}.dev - supervisor, logviewer
 ##########################################
 setup_storm() {
   ##################### LIBRARIES #####################
@@ -107,7 +117,7 @@ setup_storm() {
 
   # designate 'storm ui' on primary system
   PRIMARY_SRVR=$(grep primary ${CONFIGFILE} | awk '{ print $2 }')
-  HOSTNAME=$(/bin/hostname)
+  HOSTNAME=$(/bin/hostname -f)
   if [ ${HOSTNAME} = ${PRIMARY_SRVR} ]; then
     NIMBUS_SERVICES="${NIMBUS_SERVICES} ui"
   fi
