@@ -28,7 +28,9 @@ setup_zookeeper() {
 
   ##################### VARIABLES #####################
   STORM_ENV=${STORM_ENV:-"default"}
-  CONFIGFILE="/vagrant/config/${STORM_ENV}.hosts"
+  STORM_VERSION=${1:-"1"}
+  STORM_MAJOR_VERSION=$(echo ${STORM_VERSION} | grep -o '^[0-9]*')
+  CONFIGFILE="/vagrant/config/${STORM_MAJOR_VERSION}/${STORM_ENV}.hosts"
   ZOOKEEPER_SRVR=$(get_hostname ${CONFIGFILE} zookeeper) # fetch zookeeper srvrs
 
   ##################### MAVEN SETUP #####################
@@ -43,7 +45,8 @@ setup_zookeeper() {
 ##########################################
 setup_maven() {
   # optionally install maven if indicated for install
-  grep "${HOSTNAME}" ${CONFIGFILE} | grep -q "maven" || return 0
+  HOSTNAME_FQDN=$(hostname -f)
+  grep "${HOSTNAME_FQDN}" ${CONFIGFILE} | grep -q "maven" || return 0
 
   ##################### LIBRARIES #####################
   . ${SCRIPTLIB}/maven.src
@@ -86,11 +89,11 @@ setup_storm() {
 
   ##################### VARIABLES #####################
   STORM_ENV=${STORM_ENV:-"default"}
-  CONFIGFILE="/vagrant/config/${STORM_ENV}.hosts"
+  STORM_MAJOR_VERSION=$(echo ${STORM_VERSION} | grep -o '^[0-9]*')
+  CONFIGFILE="/vagrant/config/${STORM_MAJOR_VERSION}/${STORM_ENV}.hosts"
 
   PACKAGE_LOCATION="/vagrant/scripts/packages"
   STORM_VERSION=${1-"1.0.2"}
-  STORM_MAJOR_VERSION=$(echo ${STORM_VERSION} | grep -o '^[0-9]*')
   STORM_HOME="/usr/lib/apache/storm/${STORM_VERSION}"
   STORM_LOCAL_DIR="/app/storm"
 
@@ -117,8 +120,8 @@ setup_storm() {
 
   # designate 'storm ui' on primary system
   PRIMARY_SRVR=$(grep primary ${CONFIGFILE} | awk '{ print $2 }')
-  HOSTNAME=$(/bin/hostname -f)
-  if [ ${HOSTNAME} = ${PRIMARY_SRVR} ]; then
+  HOSTNAME_FQDN=$(/bin/hostname -f)
+  if [ ${HOSTNAME_FQDN} = ${PRIMARY_SRVR} ]; then
     NIMBUS_SERVICES="${NIMBUS_SERVICES} ui"
   fi
 
@@ -128,7 +131,7 @@ setup_storm() {
   fi
 
   # install and configure supervisord service manager
-  case $(/bin/hostname) in
+  case ${HOSTNAME_FQDN} in
     *nimbus*)
       setup_storm_supervisord "${NIMBUS_SERVICES}"
       ;;
@@ -145,16 +148,21 @@ setup_storm() {
 # notes: setup reverse proxy server with routes back to storm servers
 ##########################################
 setup_proxy() {
-  # optionally install reverse-proxy if indicated for install
-  grep "${HOSTNAME}" ${CONFIGFILE} | grep -q "proxy" || return 0
-
   ##################### VARIABLES #####################
   STORM_ENV=${STORM_ENV:-"default"}
-  CONFIGFILE="/vagrant/config/${STORM_ENV}.hosts"
+  STORM_MAJOR_VERSION=$(echo ${STORM_VERSION} | grep -o '^[0-9]*')
+  CONFIGFILE="/vagrant/config/${STORM_MAJOR_VERSION}/${STORM_ENV}.hosts"
+
+  # check that configuration file exists
+  [ -e ${CONFIGFILE} ] || \
+    { echo "ERROR: ${CONFIGFILE} doesn't exist."; return 2; }
+
   SCRIPT_PATH="/vagrant/scripts"
   SCRIPTLIB="${SCRIPT_PATH}/lib"
-  # check ${STORM_VERSION}
-  STORM_MAJOR_VERSION=$(echo ${STORM_VERSION} | grep -o '^[0-9]*')
+
+  HOSTNAME_FQDN=$(hostname -f)
+  # optionally install reverse-proxy if indicated for install
+  grep "${HOSTNAME_FQDN}" ${CONFIGFILE} | grep -q "proxy" || return 0
 
   ##################### LIBRARIES #####################
   . ${SCRIPTLIB}/nginx.src  # install_nginx(), remote_site(), enable_site()

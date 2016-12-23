@@ -71,13 +71,13 @@ get_ipaddress () {
   [ $# -ne 2 ] && \
     { echo "USAGE: get_ipaddress [config_file] [hostname]"; return 1; }
 
-  HOSTNAME=$2
+  HOST_NAME=$2
   CONFIGFILE=$1
 
   [ -e ${CONFIGFILE} ] || \
     { echo "ERROR: ${CONFIGFILE} doesn't exist."; return 2; }
 
-  echo $(tr -s ' ' < "${1}" | grep -F "${2}" | cut -d ' ' -f1)
+  echo $(tr -s ' ' < "${CONFIGFILE}" | grep -F "${HOST_NAME}" | cut -d ' ' -f1)
 
 }
 
@@ -139,7 +139,7 @@ config_hosts () {
   HOSTS="$(get_hostnames ${CONFIGFILE})"
 
   for HOST in ${HOSTS}; do
-    if [ "$(hostname)" = "${HOST}" ]; then continue; fi
+    #if [ "$(hostname -f)" = "${HOST}" ]; then continue; fi
     ### APPEND TO HOSTS IF EXACT ENTRY NOT EXIST
     IPADDRESS=$(get_ipaddress ${CONFIGFILE} ${HOST})
     grep -Fq "${IPADDRESS} ${HOST}" ${HOSTS_FILE} || echo "${IPADDRESS} ${HOST}" >> ${HOSTS_FILE}
