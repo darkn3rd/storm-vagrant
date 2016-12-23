@@ -13,6 +13,7 @@
 #  * This script will be run on the guest operating system
 
 ##### Variables
+STORM_VERSION=${1:-"1"}
 STORM_ENV=${STORM_ENV:-"default"}
 STORM_MAJOR_VERSION=$(echo ${STORM_VERSION} | grep -o '^[0-9]*')
 CONFIGFILE="/vagrant/config/${STORM_MAJOR_VERSION}/${STORM_ENV}.hosts"
